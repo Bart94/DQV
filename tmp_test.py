@@ -1,7 +1,9 @@
 import hashlib
 from datetime import date, timedelta
 
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
+from Crypto.Signature import DSS
 
 x = date.today()
 
@@ -17,11 +19,18 @@ print(hashlib.sha256('1234'.encode('utf-8')).hexdigest())
 # plaintext = cipher.decrypt(ciphertext)
 # print(plaintext)
 
-key = ECC.generate(curve='P-256')
-print(key)
-f = open('myprivatekey.pem', 'wt')
-f.write(key.export_key(format='PEM'))
-f.close()
-f = open('myprivatekey.pem', 'rt')
-key = ECC.import_key(f.read())
-print(key)
+message = b'I give my permission to order #4355'
+key = ECC.import_key(open('DQV_certs/lab_sk.pem').read())
+h = SHA256.new(message)
+signer = DSS.new(key, 'fips-186-3')
+signature = signer.sign(h)
+print(signature.hex())
+
+key = ECC.import_key(open('DQV_certs/lab_cert.pem', 'rt').read())
+h = SHA256.new(message)
+verifier = DSS.new(key, 'fips-186-3')
+try:
+    verifier.verify(h, signature)
+    print("The message is authentic.")
+except ValueError:
+    print("The message is not authentic.")
