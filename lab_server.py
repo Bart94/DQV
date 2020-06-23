@@ -1,25 +1,27 @@
-import socket
+import secrets
 
-ht = {}
-host = 'localhost'
-port = 8081
+import OpenSSL
+from Crypto.PublicKey import ECC
 
-# Create the socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# Bind the socket to the address
-sock.bind((host, port))
-# Put the socket into listening mode; argument specifies the maximum number of connections allowed
-sock.listen()
-print('Socket in ascolto')
 
-while True:
-    # Establish connection with the new client; c is a new socket object to send and receive data on the connection
-    conn, addr = sock.accept()
-    data = conn.recv(1024)
-    if not data:
-        break
-    print("Il client TCP chiede: ", str(data.decode('utf8')))
-    conn.sendto("Hello from TCP server!".encode('utf8'), addr)
-    conn.close()
-# Close the socket at the end
-sock.close()
+class Laboratorio:
+
+    __slots__ = ['h_utenti', 'sk', 'pk']
+
+    def __init__(self):
+        self.h_utenti = {}
+        self.sk_l = secrets.token_hex(32)
+        self.pk_l = ECC.generate(curve='P-256')
+
+    def add_user(self, h, t):
+        index = len(self.h_utenti)
+        self.h_utenti[index] = (h, t)
+
+    def ac_generator(self, index):
+        (h, t) = self.h_utenti[index]
+        ac = []
+        # Caso 1
+        # if len(h) == 1:
+
+
+
