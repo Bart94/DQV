@@ -26,7 +26,7 @@ signer = DSS.new(key, 'fips-186-3')
 signature = signer.sign(h)
 print(signature.hex())
 
-key = ECC.import_key(open('DQV_certs/lab_cert.pem', 'rt').read())
+key = ECC.import_key(open('DQV_certs/lab_pk.pem').read())
 h = SHA256.new(message)
 verifier = DSS.new(key, 'fips-186-3')
 try:

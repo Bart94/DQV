@@ -63,7 +63,7 @@ class User:
 
 if __name__ == "__main__":
     user = User()
-    user.hash_generator(True, 'Napoli', 'Via Roma 8')
+    user.hash_generator(False, 'Napoli', 'Via Roma 8')
 
     with open('user', 'rb') as f:
         data = pickle.load(f)
