@@ -1,9 +1,14 @@
 import pickle
-from datetime import date
+import socket
+import ssl
+from datetime import date, timedelta
 
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
+
+HOST = "localhost"
+PORT = 8081
 
 
 class Laboratorio:
@@ -17,25 +22,52 @@ class Laboratorio:
         index = len(self.h_utenti)
         self.h_utenti[index] = (h, t)
 
-    def ac_generator(self, index, t_contag=None):
+    def ac_generator(self, index, test=None, time=None):
         (h, t) = self.h_utenti[index]
+
+        t_test = t + timedelta(days=14)
+
         ac = []
-        # Caso 1
-        if len(h) == 1:
+
+        if test == 'negtest':
+            if time >= t_test:
+                with open('time', 'wb') as f:
+                    pickle.dump(time, f)
+
+                msg = str(time) + str(t) + h[0] + test
+                h_msg = SHA256.new(msg.encode('utf-8'))
+                signer = DSS.new(self.sk, 'fips-186-3')
+                signature = signer.sign(h_msg)
+                ac.append((signature, h[0], time))
+        # Caso 2.A
+        elif test == 'postest':
+            if t <= time <= t_test:
+                with open('time', 'wb') as f:
+                    pickle.dump(time, f)
+
+                for elem in h:
+                    msg = str(time) + str(t) + elem + test
+                    h_msg = SHA256.new(msg.encode('utf-8'))
+                    signer = DSS.new(self.sk, 'fips-186-3')
+                    signature = signer.sign(h_msg)
+                    ac.append((signature, elem, time))
+        else:
             msg = str(t) + h[0] + 'check'
             h_msg = SHA256.new(msg.encode('utf-8'))
             signer = DSS.new(self.sk, 'fips-186-3')
             signature = signer.sign(h_msg)
             ac.append((signature, h[0], t))
-        else:
-            for elem in h:
-                msg = str(t_contag) + str(t) + elem + 'postest'
-                h_msg = SHA256.new(msg.encode('utf-8'))
-                signer = DSS.new(self.sk, 'fips-186-3')
-                signature = signer.sign(h_msg)
-                ac.append((signature, elem, t_contag))
 
         return ac
+
+    def send_ac(self, ac):
+        message = pickle.dumps(ac)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s_sock = context.wrap_socket(sock, server_hostname=HOST)
+        s_sock.connect((HOST, PORT))
+        s_sock.send(message)
+        s_sock.close()
 
 
 if __name__ == "__main__":

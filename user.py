@@ -11,7 +11,7 @@ class User:
 
     def __init__(self):
         self.sk0 = secrets.token_hex(32)
-        self.t0 = date.today()
+        self.t0 = date.today() - timedelta(days=15)
 
     def set_sk(self, t=date.today()):
         self.t = date.today()
