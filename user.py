@@ -50,8 +50,8 @@ class User:
             self.tpast = date.today() - timedelta(days=14)
             self.set_sk(self.tpast)
 
-            h = [hashlib.sha256((self.sk0 + str(self.tpast) + self.r + 'test').encode('utf-8')).hexdigest(),
-                 hashlib.sha256((self.sk0 + str(self.tpast) + self.r + self.pa + 'test').encode('utf-8')).hexdigest()]
+            h = [hashlib.sha256((self.sk0 + str(self.tpast) + self.r + self.pa + 'test').encode('utf-8')).hexdigest(),
+                 hashlib.sha256((self.sk0 + str(self.tpast) + self.r + 'test').encode('utf-8')).hexdigest()]
 
             data = (h, self.tpast)
 
@@ -63,7 +63,7 @@ class User:
 
 if __name__ == "__main__":
     user = User()
-    user.hash_generator(False, 'Napoli', 'Via Roma 8')
+    user.hash_generator(True, 'Napoli', 'Via Roma 8')
 
     with open('user', 'rb') as f:
         data = pickle.load(f)

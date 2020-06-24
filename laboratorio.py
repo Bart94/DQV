@@ -1,14 +1,16 @@
 import pickle
 import socket
 import ssl
-from datetime import date, timedelta
+from datetime import timedelta
 
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
 
+from data_lab import DataLab
+
 HOST = "localhost"
-PORT = 8081
+PORT = 443
 
 
 class Laboratorio:
@@ -22,12 +24,12 @@ class Laboratorio:
         index = len(self.h_utenti)
         self.h_utenti[index] = (h, t)
 
-    def ac_generator(self, index, test=None, time=None):
+    def act_tuple_generator(self, index, test=None, time=None):
         (h, t) = self.h_utenti[index]
 
         t_test = t + timedelta(days=14)
 
-        ac = []
+        act_tuple = []
 
         if test == 'negtest':
             if time >= t_test:
@@ -37,8 +39,8 @@ class Laboratorio:
                 msg = str(time) + str(t) + h[0] + test
                 h_msg = SHA256.new(msg.encode('utf-8'))
                 signer = DSS.new(self.sk, 'fips-186-3')
-                signature = signer.sign(h_msg)
-                ac.append((signature, h[0], time))
+                ac = signer.sign(h_msg)
+                act_tuple.append((ac, h[0], time))
         # Caso 2.A
         elif test == 'postest':
             if t <= time <= t_test:
@@ -49,25 +51,24 @@ class Laboratorio:
                     msg = str(time) + str(t) + elem + test
                     h_msg = SHA256.new(msg.encode('utf-8'))
                     signer = DSS.new(self.sk, 'fips-186-3')
-                    signature = signer.sign(h_msg)
-                    ac.append((signature, elem, time))
+                    ac = signer.sign(h_msg)
+                    act_tuple.append((ac, elem, time))
         else:
             msg = str(t) + h[0] + 'check'
             h_msg = SHA256.new(msg.encode('utf-8'))
             signer = DSS.new(self.sk, 'fips-186-3')
-            signature = signer.sign(h_msg)
-            ac.append((signature, h[0], t))
+            ac = signer.sign(h_msg)
+            act_tuple.append((ac, h[0], t))
 
-        return ac
+        return act_tuple
 
-    def send_ac(self, ac):
-        message = pickle.dumps(ac)
+    def send_act_tuple(self, act_tuple):
+        message = pickle.dumps(act_tuple)
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s_sock = context.wrap_socket(sock, server_hostname=HOST)
-        s_sock.connect((HOST, PORT))
-        s_sock.send(message)
-        s_sock.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            with context.wrap_socket(sock, server_hostname=HOST) as s_sock:
+                s_sock.connect((HOST, PORT))
+                s_sock.send(message)
 
 
 if __name__ == "__main__":
@@ -77,4 +78,5 @@ if __name__ == "__main__":
         h, t = pickle.load(f)
 
     lab.add_user(h, t)
-    print(lab.ac_generator(0, date.today()))
+    ac = DataLab(lab.act_tuple_generator(0))
+    lab.send_act_tuple(ac)
