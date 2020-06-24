@@ -1,7 +1,7 @@
 import pickle
 import socket
 import ssl
-from datetime import timedelta
+from datetime import timedelta, date
 
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
@@ -24,7 +24,7 @@ class Laboratorio:
         index = len(self.h_utenti)
         self.h_utenti[index] = (h, t)
 
-    def act_tuple_generator(self, index, test=None, time=None):
+    def act_tuple_generator(self, index, test=None, time=date.today()):
         (h, t) = self.h_utenti[index]
 
         t_test = t + timedelta(days=14)
@@ -32,7 +32,7 @@ class Laboratorio:
         act_tuple = []
 
         if test == 'negtest':
-            if time >= t_test:
+            if time > t_test:
                 with open('time', 'wb') as f:
                     pickle.dump(time, f)
 
@@ -71,12 +71,12 @@ class Laboratorio:
                 s_sock.send(message)
 
 
-if __name__ == "__main__":
-    lab = Laboratorio()
-
-    with open('user', 'rb') as f:
-        h, t = pickle.load(f)
-
-    lab.add_user(h, t)
-    ac = DataLab(lab.act_tuple_generator(0))
-    lab.send_act_tuple(ac)
+# if __name__ == "__main__":
+#     lab = Laboratorio()
+#
+#     with open('user', 'rb') as f:
+#         h, t = pickle.load(f)
+#
+#     lab.add_user(h, t)
+#     ac = DataLab(lab.act_tuple_generator(0, 'postest', date.today()))
+#     lab.send_act_tuple(ac)

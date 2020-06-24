@@ -41,11 +41,4 @@ import ssl
 # signature = signer.sign(h)
 # print(signature.hex())
 #
-# key = ECC.import_key(open('DQV_certs/lab_pk.pem').read())
-# h = SHA256.new(message)
-# verifier = DSS.new(key, 'fips-186-3')
-# try:
-#     verifier.verify(h, signature)
-#     print("The message is authentic.")
-# except ValueError:
-#     print("The message is not authentic.")
+

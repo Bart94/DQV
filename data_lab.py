@@ -9,10 +9,10 @@ class DataLab:
             self.act_tuple = at[1]
 
     def get_act_tuple(self):
-        return self.act_tuple
+        return self._get_info(self.act_tuple) if self.act_tuple is not None else None
 
     def get_act_m_tuple(self):
-        return self.act_m_tuple
+        return self._get_info(self.act_m_tuple)
 
-    def get_info(self, at):
+    def _get_info(self, at):
         return {'ac': at[0], 'h': at[1], 't': at[2]}
