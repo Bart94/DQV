@@ -19,12 +19,9 @@ class Utente:
     def __init__(self):
         self.sk0 = secrets.token_hex(32)
         self.t0 = date.today() - timedelta(days=20)
+        self.t = date.today() - timedelta(days=1)
 
-    def set_sk(self, t=date.today()):
-        self.t = date.today()
-        self._eval_sk(t)
-
-    def _eval_sk(self, t):
+    def set_sk(self, t=date.today() - timedelta(days=1)):
         self.sk = self.sk0
 
         diff = (t - self.t0).days
@@ -51,7 +48,7 @@ class Utente:
             data = (h, self.t)
         # Caso 2
         else:
-            self.tpast = date.today() - timedelta(days=14)
+            self.tpast = self.t - timedelta(days=14)
             self.set_sk(self.tpast)
 
             h = [hashlib.sha256((self.sk + str(self.tpast) + self.r + self.pa + 'test').encode('utf-8')).hexdigest(),
@@ -65,16 +62,17 @@ class Utente:
         return h
 
     def sign_in_procedure(self, tampone, positivo=True, monitoraggio=True):
-        if not tampone:  # Caso 1
-            data = DataUser(self.sk, self.t, self.r, self.pa)
+        if not tampone:
+            if monitoraggio:  # Caso 1
+                data = DataUser(self.sk, self.t, self.r, self.pa)
         else:
             with open('time', 'rb') as f:
                 time = pickle.load(f)
 
-            if monitoraggio:  # Caso 2.A.2 - Caso 2.B
-                data = DataUser(self.sk, self.tpast, self.r, self.pa, time)
-            elif positivo:  # Caso 2.A.1
+            if positivo and not monitoraggio:  # Caso 2.A.1
                 data = DataUser(self.sk, self.tpast, self.r, pa=None, time=time)
+            elif monitoraggio:  # Caso 2.A.2 - Caso 2.B
+                data = DataUser(self.sk, self.tpast, self.r, self.pa, time)
 
         return data
 

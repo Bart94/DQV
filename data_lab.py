@@ -18,5 +18,14 @@ class DataLab:
         return {'ac': at[0], 'h': at[1], 't': at[2]}
 
     def __str__(self):
-        s = (str(self.act_tuple) + " ") if self.act_tuple is not None else ""
-        return s + str(self.act_m_tuple)
+        if self.act_tuple is not None:
+            s = self._beautify_tuple(self.act_tuple) + " "
+        else:
+            s = ""
+        return s + self._beautify_tuple(self.act_m_tuple)
+
+    def _beautify_tuple(self, data):
+        s = self._get_info(data)
+        ac = s['ac'].hex()
+        s = str((ac, s['h'], s['t']))
+        return s

@@ -154,5 +154,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             else:
                 res = user_handler(retrieve_data)
                 print("Invio all'utente: " + str(res))
-                print('--------------------')
+                print('----------------------------------------------------------------------------------------------')
                 conn.send(pickle.dumps(res))

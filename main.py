@@ -12,11 +12,13 @@ address = ['Via Roma 1', 'Via Firenze 4', 'Via Europa 18', 'Corso Sicurezza 30',
 while True:
     msg = "L'utente ha accettato il monitoraggio."
 
+    print('----------------------------------------------------------------------------------------------')
     print('1 = Cittadino a rischio soggetto a quarantena che richiede monitoraggio\n'
           '2 = Cittadino positivo al tampone che non richiede monitoraggio\n'
           '3 = Cittadino positivo al tampone che richiede monitoraggio\n'
           '4 = Cittadino negativo al tampone che richiede monitoraggio\n'
           '0 = Termina')
+    print('----------------------------------------------------------------------------------------------')
 
     i = int(input('Seleziona: '))
     print()
@@ -25,7 +27,7 @@ while True:
         tampone = False
         test = None
         time = date.today()
-        positivo = False
+        positivo = None
         monitoraggio = True
 
     elif i == 2:  # Caso 2.A.1
@@ -46,7 +48,7 @@ while True:
     elif i == 4:  # Caso 2.B
         tampone = True
         test = 'negtest'
-        time = date.today() + timedelta(days=1)
+        time = date.today()
         positivo = False
         monitoraggio = True
 
@@ -54,9 +56,8 @@ while True:
         break
 
     else:
-        input('Input non valido.')
+        print('Input non valido.')
         continue
-
 
     user = Utente()
     user.hash_generator(tampone, city[random.randint(0, len(city) - 1)], address[random.randint(0, len(address) - 1)])
