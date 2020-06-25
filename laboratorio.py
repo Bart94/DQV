@@ -7,63 +7,70 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
 
-from data_lab import DataLab
-
 HOST = "localhost"
 PORT = 443
 
 
 class Laboratorio:
-    __slots__ = ['h_utenti', 'sk', 'pk']
+    __slots__ = ['db_utenti', 'sk_lab']
 
     def __init__(self):
-        self.h_utenti = {}
-        self.sk = ECC.import_key(open('DQV_certs/lab_sk.pem').read())
+        self.db_utenti = {}
+        self.sk_lab = ECC.import_key(open('DQV_certs/lab_sk.pem').read())
 
     def add_user(self, h, t):
-        index = len(self.h_utenti)
-        self.h_utenti[index] = (h, t)
+        index = len(self.db_utenti)
+        self.db_utenti[index] = (h, t)
         return index
 
     def act_tuple_generator(self, index, test=None, time=date.today()):
-        (h, t) = self.h_utenti[index]
+        (h, t) = self.db_utenti[index]
 
         t_test = t + timedelta(days=14)
-
-        print(t, t_test, time)
-
         act_tuple = []
 
-        if test == 'negtest':
-            if time > t_test:
+        if test == 'negtest':  # Caso 2.B
+            t_result = time
+            t_past = t
+            h_m_t_past = h[0]
+            if t_result > t_test:
                 with open('time', 'wb') as f:
-                    pickle.dump(time, f)
+                    pickle.dump(t_result, f)
 
-                msg = str(time) + str(t) + h[0] + test
+                msg = str(t_result) + str(t_past) + h_m_t_past + test
                 h_msg = SHA256.new(msg.encode('utf-8'))
-                signer = DSS.new(self.sk, 'fips-186-3')
+                signer = DSS.new(self.sk_lab, 'fips-186-3')
                 ac = signer.sign(h_msg)
-                act_tuple.append((ac, h[0], time))
-        # Caso 2.A
-        elif test == 'postest':
-            if t <= time <= t_test:
+                act_tuple.append((ac, h_m_t_past, t_result))
+                print("L'utente ha eseguito il test il giorno {}. "
+                      "Il risultato è stato negativo il giorno {}".format(t_test, t_result))
+
+        elif test == 'postest':  # Caso 2.A
+            t_contag = time
+            t_past = t
+            if t_past <= t_contag <= t_test:
                 with open('time', 'wb') as f:
-                    pickle.dump(time, f)
+                    pickle.dump(t_contag, f)
 
                 for elem in h:
-                    msg = str(time) + str(t) + elem + test
-                    print('msg', str(time), str(t), elem, test)
+                    msg = str(t_contag) + str(t_past) + elem + test
                     h_msg = SHA256.new(msg.encode('utf-8'))
-                    signer = DSS.new(self.sk, 'fips-186-3')
+                    signer = DSS.new(self.sk_lab, 'fips-186-3')
                     ac = signer.sign(h_msg)
-                    print('elem', elem)
-                    act_tuple.append((ac, elem, time))
-        else:
-            msg = str(t) + h[0] + 'check'
+                    act_tuple.append((ac, elem, t_contag))
+                print("L'utente ha eseguito il test il giorno {}. "
+                      "Il risultato è stato positivo e l'utente risulta contagioso dal giorno {}".format(t_test,
+                                                                                                         t_contag))
+
+        else:  # Caso 1
+            t_check = t
+            h_t_check = h[0]
+            msg = str(t_check) + h_t_check + 'check'
             h_msg = SHA256.new(msg.encode('utf-8'))
-            signer = DSS.new(self.sk, 'fips-186-3')
+            signer = DSS.new(self.sk_lab, 'fips-186-3')
             ac = signer.sign(h_msg)
-            act_tuple.append((ac, h[0], t))
+            act_tuple.append((ac, h_t_check, t_check))
+            print("All'utente viene imposta la quarantena il giorno {}".format(t_check))
 
         return act_tuple
 
@@ -74,14 +81,3 @@ class Laboratorio:
             with context.wrap_socket(sock, server_hostname=HOST) as s_sock:
                 s_sock.connect((HOST, PORT))
                 s_sock.send(message)
-
-
-# if __name__ == "__main__":
-#     lab = Laboratorio()
-#
-#     with open('user', 'rb') as f:
-#         h, t = pickle.load(f)
-#
-#     lab.add_user(h, t)
-#     ac = DataLab(lab.act_tuple_generator(0, 'postest', date.today()))
-#     lab.send_act_tuple(ac)

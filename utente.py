@@ -7,12 +7,14 @@ from datetime import date, timedelta
 
 from data_user import DataUser
 
-DMR = 30
 HOST = "localhost"
 PORT = 443
+DMR = 30
 
-class User:
-    __slots__ = ['sk0', 'sk', 't0', 't', 'tpast', 'r', 'r_a', 'r_pa', 'h_a', 'pa', 'city', 'address']
+
+class Utente:
+    __slots__ = ['sk0', 'sk', 't0', 't', 'tpast', 'r', 'r_a', 'r_pa', 'h_a', 'pa', 'city', 'address', 'sk_t_m', 't_m',
+                 'v_max']
 
     def __init__(self):
         self.sk0 = secrets.token_hex(32)
@@ -42,9 +44,6 @@ class User:
     def hash_generator(self, tampone, city, address):
         self.calcolo_pa(city, address)
 
-        h = []
-        data = ()
-
         # Caso 1
         if not tampone:
             self.set_sk()
@@ -54,9 +53,6 @@ class User:
         else:
             self.tpast = date.today() - timedelta(days=14)
             self.set_sk(self.tpast)
-
-            print('User')
-            print(self.sk, str(self.tpast), self.r, self.pa)
 
             h = [hashlib.sha256((self.sk + str(self.tpast) + self.r + self.pa + 'test').encode('utf-8')).hexdigest(),
                  hashlib.sha256((self.sk + str(self.tpast) + self.r + 'test').encode('utf-8')).hexdigest()]
@@ -75,7 +71,6 @@ class User:
             with open('time', 'rb') as f:
                 time = pickle.load(f)
 
-            print('tpast', self.tpast)
             if monitoraggio:  # Caso 2.A.2 - Caso 2.B
                 data = DataUser(self.sk, self.tpast, self.r, self.pa, time)
             elif positivo:  # Caso 2.A.1
@@ -91,12 +86,13 @@ class User:
                 s_sock.connect((HOST, PORT))
                 s_sock.send(message)
                 byte_stream = s_sock.recv(1024)
+
                 retrieve_data = pickle.loads(byte_stream)
-                print(retrieve_data)
+                if isinstance(retrieve_data, tuple):
+                    self.sk_t_m, self.t_m, self.v_max = retrieve_data
+                    print('Parametri Monitoraggio')
+                    print('SK: ' + self.sk_t_m + ' - T: ' + str(self.t_m) + ' - VMax: ' + str(self.v_max) + '\n')
+                else:
+                    print(retrieve_data + '\n')
 
-
-# if __name__ == "__main__":
-#     user = User()
-#     # user.hash_generator(False, 'Napoli', 'Via Roma 8')
-#     data = user.sign_in_procedure()
-#     user.send_user_info()
+        return retrieve_data

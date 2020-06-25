@@ -1,17 +1,27 @@
 import pickle
 import random
-import string
 from datetime import date, timedelta
 
 from data_lab import DataLab
 from laboratorio import Laboratorio
-from user import User
+from utente import Utente
+
+city = ['Nocera', 'Avellino', 'Pompei', 'Aversa', 'Battipaglia']
+address = ['Via Roma 1', 'Via Firenze 4', 'Via Europa 18', 'Corso Sicurezza 30', 'Via Liguria 69']
 
 while True:
-    i = int(input('Scegli bene: '))
+    msg = "L'utente ha accettato il monitoraggio."
+
+    print('1 = Cittadino a rischio soggetto a quarantena che richiede monitoraggio\n'
+          '2 = Cittadino positivo al tampone che non richiede monitoraggio\n'
+          '3 = Cittadino positivo al tampone che richiede monitoraggio\n'
+          '4 = Cittadino negativo al tampone che richiede monitoraggio\n'
+          '0 = Termina')
+
+    i = int(input('Seleziona: '))
+    print()
 
     if i == 1:  # Caso 1
-        print('Caso 1')
         tampone = False
         test = None
         time = date.today()
@@ -19,40 +29,37 @@ while True:
         monitoraggio = True
 
     elif i == 2:  # Caso 2.A.1
-        print('Caso 2.A.1')
         tampone = True
         test = 'postest'
         time = date.today() - timedelta(days=5)
         positivo = True
         monitoraggio = False
-
+        msg = "L'utente non ha accettato il monitoraggio."
 
     elif i == 3:  # Caso 2.A.2
-        print('Caso 2.A.2')
         tampone = True
         test = 'postest'
         time = date.today() - timedelta(days=5)
         positivo = True
         monitoraggio = True
 
-
-
     elif i == 4:  # Caso 2.B
-        print('Caso 2.B')
         tampone = True
         test = 'negtest'
         time = date.today() + timedelta(days=1)
         positivo = False
         monitoraggio = True
 
-    else:
-        input('Ma sei scemo o sei buono? -> Rispondi ...')
+    elif i == 0:  # Caso 2.B
         break
 
-    user = User()
-    city = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    address = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    user.hash_generator(tampone, city, address)
+    else:
+        input('Input non valido.')
+        continue
+
+
+    user = Utente()
+    user.hash_generator(tampone, city[random.randint(0, len(city) - 1)], address[random.randint(0, len(address) - 1)])
 
     lab = Laboratorio()
 
@@ -64,5 +71,6 @@ while True:
     ac = DataLab(lab.act_tuple_generator(index, test, time))
     lab.send_act_tuple(ac)
 
+    print(msg)
     data = user.sign_in_procedure(tampone, positivo, monitoraggio)
-    user.send_user_info(data)
+    retrieved_data = user.send_user_info(data)

@@ -43,81 +43,92 @@ def user_handler(data):
     sk = d['sk']
     time = d['time']
     t = d['t']
-    print('caso2b', time, t)
-    t_test = t + timedelta(days=14)
     pa = d['pa']
+    t_test = t + timedelta(days=14)
 
-    res = 'Ops! Sono contrariato.'
+    res = 'Registrazione fallita.'
 
     if time is None:  # Caso 1
-        h_msg = data.hash_caso_1()
+        h_t_check = data.hash_caso_1()
 
-        if h_msg in at.keys():
-            ac, t_check = at[h_msg]
+        if h_t_check in at.keys():
+            ac, t_check = at[h_t_check]
             if t_check == t:
-                message = str(t) + h_msg + 'check'
+                message = str(t_check) + h_t_check + 'check'
+                sk_t_check = sk
+
                 if verify(message, ac):
-                    if sk not in risk.keys():
-                        risk[sk] = (t, pa)
-                        res = (sk, t, 3)
-                        del (at[h_msg])
+                    if sk_t_check not in risk.keys():
+                        risk[sk_t_check] = (t_check, pa)
+                        res = (sk_t_check, t_check, 3)
+                        print('È stato aggiunto un nuovo utente a rischio che ha richiesto il monitoraggio.')
+                        del (at[h_t_check])
 
     elif time > t_test:  # Caso 2.B
-        h_msg = data.hash_caso_2_b()
+        h_m_t_past = data.hash_caso_2_b()
 
-        if h_msg in at.keys():
-            ac, t_result = at[h_msg]
+        if h_m_t_past in at.keys():
+            ac, t_result = at[h_m_t_past]
 
             if t_result == time:
-                message = str(time) + str(t) + h_msg + 'negtest'
+                t_past = t
+                message = str(t_result) + str(t_past) + h_m_t_past + 'negtest'
+
                 if verify(message, ac):
-                    diff = (time - t).days
+                    diff = (t_result - t_past).days
                     for i in range(diff):
                         sk = hashlib.sha256(sk.encode('utf-8')).hexdigest()
 
-                    if sk not in risk.keys():
-                        risk[sk] = (time, pa)
-                        res = (sk, time, 3)
-                        del (at[h_msg])
+                    sk_t_result = sk
+
+                    if sk_t_result not in risk.keys():
+                        risk[sk_t_result] = (t_result, pa)
+                        res = (sk_t_result, t_result, 3)
+                        print('È stato aggiunto un nuovo utente negativo al tampone che ha richiesto il monitoraggio.')
+                        del (at[h_m_t_past])
 
     elif pa is None:  # Caso 2.A.1
-        print('Caso2a1')
-        h_msg = data.hash_caso_2_a_1()
+        h_t_past = data.hash_caso_2_a_1()
 
-        if h_msg in at.keys():
-            ac, t_contag = at[h_msg]
+        if h_t_past in at.keys():
+            ac, t_contag = at[h_t_past]
 
             if t_contag == time:
-                message = str(time) + str(t) + h_msg + 'postest'
+                t_past = t
+                message = str(t_contag) + str(t_past) + h_t_past + 'postest'
                 if verify(message, ac):
-                    diff = (time - t).days
+                    diff = (t_contag - t_past).days
                     for i in range(diff):
                         sk = hashlib.sha256(sk.encode('utf-8')).hexdigest()
 
-                    if sk not in infected.keys():
-                        infected[sk] = (time, None)
-                        res = 'Ok. Guglielmo.'
-                        del (at[h_msg])
+                    sk_t_contag = sk
+
+                    if sk_t_contag not in infected.keys():
+                        infected[sk_t_contag] = (t_contag, None)
+                        res = 'Positività Comunicata.'
+                        print('È stato aggiunto un nuovo utente infetto che non ha richiesto il monitoraggio.')
+                        del (at[h_t_past])
     else:  # Caso 2.A.2
-        print('Caso2a2')
-        h_msg = data.hash_caso_2_a_2()
-        print('HELLO', h_msg)
-        if h_msg in at.keys():
-            print('Ivan')
-            ac, t_contag = at[h_msg]
+        h_m_t_past = data.hash_caso_2_a_2()
+
+        if h_m_t_past in at.keys():
+            ac, t_contag = at[h_m_t_past]
+
             if t_contag == time:
-                print('ac,t', ac, t_contag)
-                message = str(time) + str(t) + h_msg + 'postest'
-                print(str(time), str(t), h_msg, 'postest')
+                t_past = t
+                message = str(t_contag) + str(t_past) + h_m_t_past + 'postest'
                 if verify(message, ac):
-                    diff = (time - t).days
+                    diff = (t_contag - t_past).days
                     for i in range(diff):
                         sk = hashlib.sha256(sk.encode('utf-8')).hexdigest()
 
-                    if sk not in infected.keys():
-                        infected[sk] = (time, pa)
-                        res = (sk, time, 1)
-                        del (at[h_msg])
+                    sk_t_contag = sk
+
+                    if sk_t_contag not in infected.keys():
+                        infected[sk_t_contag] = (t_contag, pa)
+                        res = (sk_t_contag, t_contag, 1)
+                        print('È stato aggiunto un nuovo utente infetto che ha richiesto il monitoraggio.')
+                        del (at[h_m_t_past])
 
     return res
 
@@ -128,6 +139,7 @@ context.load_cert_chain('DQV_certs/serv_cert.pem', 'DQV_certs/serv_sk.pem')
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     sock.bind((host, port))
     sock.listen(5)
+    print('Server in ascolto...\n')
     with context.wrap_socket(sock, server_side=True) as ssock:
         while True:
             conn, addr = ssock.accept()
@@ -137,12 +149,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             retrieve_data = pickle.loads(data)
 
             if isinstance(retrieve_data, DataLab):
+                print("Ricevute tuple di attivazione dal laboratorio: " + str(retrieve_data))
                 lab_handler(retrieve_data)
-                print('DataLab', at)
             else:
                 res = user_handler(retrieve_data)
-                print('user', res)
+                print("Invio all'utente: " + str(res))
+                print('--------------------')
                 conn.send(pickle.dumps(res))
-                print('at', at)
-                print('risk', risk)
-                print('infected', infected)

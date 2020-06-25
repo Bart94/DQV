@@ -16,3 +16,7 @@ class DataLab:
 
     def _get_info(self, at):
         return {'ac': at[0], 'h': at[1], 't': at[2]}
+
+    def __str__(self):
+        s = (str(self.act_tuple) + " ") if self.act_tuple is not None else ""
+        return s + str(self.act_m_tuple)
