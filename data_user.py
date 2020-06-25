@@ -30,6 +30,4 @@ class DataUser:
         return SHA256.new((self.sk + str(self.t) + self.r + self.pa + 'test').encode('utf-8')).hexdigest()
 
     def hash_caso_2_a_2(self):
-        print('Server')
-        print(self.sk, str(self.t), self.r, self.pa)
         return self.hash_caso_2_b()

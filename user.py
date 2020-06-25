@@ -58,8 +58,8 @@ class User:
             print('User')
             print(self.sk, str(self.tpast), self.r, self.pa)
 
-            h = [hashlib.sha256((self.sk0 + str(self.tpast) + self.r + self.pa + 'test').encode('utf-8')).hexdigest(),
-                 hashlib.sha256((self.sk0 + str(self.tpast) + self.r + 'test').encode('utf-8')).hexdigest()]
+            h = [hashlib.sha256((self.sk + str(self.tpast) + self.r + self.pa + 'test').encode('utf-8')).hexdigest(),
+                 hashlib.sha256((self.sk + str(self.tpast) + self.r + 'test').encode('utf-8')).hexdigest()]
 
             data = (h, self.tpast)
 
@@ -75,10 +75,11 @@ class User:
             with open('time', 'rb') as f:
                 time = pickle.load(f)
 
+            print('tpast', self.tpast)
             if monitoraggio:  # Caso 2.A.2 - Caso 2.B
-                data = DataUser(self.sk, self.t, self.r, self.pa, time)
+                data = DataUser(self.sk, self.tpast, self.r, self.pa, time)
             elif positivo:  # Caso 2.A.1
-                data = DataUser(self.sk, self.t, self.r, pa=None, time=time)
+                data = DataUser(self.sk, self.tpast, self.r, pa=None, time=time)
 
         return data
 

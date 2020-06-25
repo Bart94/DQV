@@ -23,11 +23,14 @@ class Laboratorio:
     def add_user(self, h, t):
         index = len(self.h_utenti)
         self.h_utenti[index] = (h, t)
+        return index
 
     def act_tuple_generator(self, index, test=None, time=date.today()):
         (h, t) = self.h_utenti[index]
 
         t_test = t + timedelta(days=14)
+
+        print(t, t_test, time)
 
         act_tuple = []
 
@@ -49,9 +52,11 @@ class Laboratorio:
 
                 for elem in h:
                     msg = str(time) + str(t) + elem + test
+                    print('msg', str(time), str(t), elem, test)
                     h_msg = SHA256.new(msg.encode('utf-8'))
                     signer = DSS.new(self.sk, 'fips-186-3')
                     ac = signer.sign(h_msg)
+                    print('elem', elem)
                     act_tuple.append((ac, elem, time))
         else:
             msg = str(t) + h[0] + 'check'
